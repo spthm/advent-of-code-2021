@@ -56,10 +56,13 @@
   [f coll]
   (apply max (map f coll)))
 
-(defn map-val
+(defn update-vals
   "Returns a new Map, with the same keys as m, and f applied to all its values."
   [f m]
-  (into (empty m) (for [[k v] m] [k (f v)])))
+  (reduce-kv
+   (fn [m' k v] (assoc m' k (f v)))
+   (empty m)
+   m))
 
 ;;
 ;; Maths

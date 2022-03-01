@@ -10,7 +10,7 @@
        ;; The problem doesn't allow us to return to the starting cave.
        ;; It's also slightly faster if we convert the adjacent nodes
        ;; from sets to vecs.
-       (u/map-val
+       (u/update-vals
         (fn [adjs] (vec (disj adjs "start"))))))
 
 (defn big? [s]
