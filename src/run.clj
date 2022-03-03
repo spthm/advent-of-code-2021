@@ -6,7 +6,8 @@
              d16 d17])
   (:require [clojure.string :as string]
             [clojure.tools.cli :refer [parse-opts]]
-            [clojure.java.io :as io])
+            [clojure.java.io :as io]
+            [criterium.core :refer [format-value quick-benchmark scale-time]])
   (:gen-class))
 
 (defn parse-int-range [s]
@@ -24,6 +25,7 @@
     :default (range 1 3)
     :default-desc "1-2"
     :parse-fn parse-int-range]
+   [nil "--bench" "Benchmark each solution. This will take a while!"]
    ["-h" "--help"]])
 
 (defn usage [options-summary]
@@ -76,19 +78,44 @@
     part
     (println (format "  cannot find (part-%d)" part))))
 
+(defn format-answer
+  [n answer]
+  (format "  %d : %s" n answer))
+
+(defn format-bench
+  [n estimate]
+  (let [mean (first estimate)
+        [factor unit] (scale-time mean)]
+    (format "  %d : %s" n (format-value mean factor unit))))
+
 (defn run
   [day n]
   (when-let [input (find-input day)]
     (when-let [parse (find-parse day)]
       (when-let [part-* (find-part-* day n)]
         (let [answer (part-* (parse input))]
-          (println (format "  %d: %-30s" n answer)))))))
+          (println (format-answer n answer)))))))
+
+(defn bench
+  [day n]
+  (when-let [input (find-input day)]
+    (when-let [parse (find-parse day)]
+      (when-let [part-* (find-part-* day n)]
+        (let [results (quick-benchmark (part-* (parse input)) {})]
+          (println (format-bench n (:mean results))))))))
 
 (defn -main [& args]
   (let [{:keys [options exit-message ok?]} (validate-args args)]
     (cond
       (some? exit-message)
       (exit (if ok? 0 1) exit-message)
+
+      (:bench options)
+      (doseq [day (:days options)]
+        (println (format "Day %02d" day))
+        (doseq [part (:parts options)]
+          (bench day part))
+        (println))
 
       :else
       (doseq [day (:days options)]
