@@ -10,16 +10,20 @@ Run all solutions:
 clj -M -m run
 ```
 
-or a specific solution, e.g. day 4,
+Benchmark all solutions (this is slow!):
 
 ```console
-clj -M -m run -d 4
+clj -M -m run --bench
 ```
 
-or a subset of solutions, e.g. days 2 through 5,
+To run a specific day, use `-d <n>`.
+To run a range of days, use `-d <n>-<m>`.
+To run a specific part, use `-p <n>`.
+
+For example, to benchmark part one for days three, four and five,
 
 ```console
-clj -M -m run -d 2-5
+clj -M -m run -d 3-5 -p 1 --bench
 ```
 
 ## Structure
