@@ -5,10 +5,11 @@
              d11 d12 d13 d14 d15
              d16 d17])
   (:require [clojure.string :as string]
-            [clojure.tools.cli :refer [parse-opts]])
+            [clojure.tools.cli :refer [parse-opts]]
+            [clojure.java.io :as io])
   (:gen-class))
 
-(defn parse-days [s]
+(defn parse-int-range [s]
   ;; hacky!
   (let [[start end] (->> (re-seq #"\d+" s) (map #(Integer/parseInt %)))
         end (or end start)] ; end is optional
@@ -18,7 +19,11 @@
   [["-d" "--days RANGE" "Day(s) to run, e.g. '1', '4-5'"
     :default (range 1 18)
     :default-desc "1-17"
-    :parse-fn parse-days]
+    :parse-fn parse-int-range]
+   ["-p" "--parts RANGE" "Part(s) to run, e.g. '1', '1-2'"
+    :default (range 1 3)
+    :default-desc "1-2"
+    :parse-fn parse-int-range]
    ["-h" "--help"]])
 
 (defn usage [options-summary]
@@ -44,7 +49,7 @@
       errors
       {:exit-message (error-msg errors)}
 
-      (< 0 (count arguments))
+      (pos? (count arguments))
       {:exit-message (format "No arguments are accepted (you provided %s)" arguments)
        :options options}
 
@@ -55,30 +60,39 @@
   (println msg)
   (System/exit status))
 
+(defn find-input [day]
+  (let [fp (format "inputs/d%02d/input" day)]
+    (if (.exists (io/file fp))
+      fp
+      (println (format "  cannot find input file: %s" fp)))))
+
+(defn find-parse [day]
+  (if-let [parse (resolve (symbol (format "aoc.d%02d/parse" day)))]
+    parse
+    (println "  cannot find (parse)")))
+
+(defn find-part-* [day part]
+  (if-let [part (resolve (symbol (format "aoc.d%02d/part-%d" day part)))]
+    part
+    (println (format "  cannot find (part-%d)" part))))
+
 (defn run
-  ([day]
-   (run day 1)
-   (run day 2))
-  ([day part]
-   (let [input (format "inputs/d%02d/input" day)
-         parse-sym (symbol (format "aoc.d%02d/parse" day))
-         soln-sym (symbol (format "aoc.d%02d/part-%d" day part))]
-     (if-let [parse (resolve parse-sym)]
-       (if-let [soln (resolve soln-sym)]
-         (let [answer (soln (parse input))]
-           (println (format "  %d: %-30s" part answer)))
-         (println (format "  Can't find %s" soln-sym)))
-       (println (format "  Can't find %s" parse-sym))
-     )
-   )
-  )
-)
+  [day n]
+  (when-let [input (find-input day)]
+    (when-let [parse (find-parse day)]
+      (when-let [part-* (find-part-* day n)]
+        (let [answer (part-* (parse input))]
+          (println (format "  %d: %-30s" n answer)))))))
 
 (defn -main [& args]
   (let [{:keys [options exit-message ok?]} (validate-args args)]
-    (if exit-message
+    (cond
+      (some? exit-message)
       (exit (if ok? 0 1) exit-message)
+
+      :else
       (doseq [day (:days options)]
         (println (format "Day %02d" day))
-        (run day)
+        (doseq [part (:parts options)]
+          (run day part))
         (println)))))
