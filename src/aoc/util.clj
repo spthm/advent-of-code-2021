@@ -51,6 +51,10 @@
   [pred coll]
   (count (filter pred coll)))
 
+(defn flattenv
+  [coll]
+  (vec (flatten coll)))
+
 (defn indices
   "Returns a lazy sequence of the indices in coll for which pred is true."
   [pred coll]
@@ -113,6 +117,11 @@
 ;; Matrix ops
 ;;
 
+(defn n-row
+  "Return the number of rows of xs"
+  [xs]
+  (count xs))
+
 (defn n-col
   "Return the number of columns of xs.
    
@@ -126,6 +135,11 @@
    Specifically, a vector of the ith item of each item of xs."
   [xs, i]
   (mapv #(nth % i) xs))
+
+(defn zeros
+  "Return a vector of zeros of length n."
+  [n]
+  (vec (repeat n 0)))
 
 ;;
 ;; Misc.
@@ -164,7 +178,7 @@
 
 ;; todo: makes sense to (optionally) pass the regex for re-seq into this
 (defn parse-intgrid
-  "Parse a string of unpspaced ints as a grid, returning a vector of vectors.
+  "Parse a string of unspaced ints as a grid, returning a vector of vectors.
    
    E.g.,
      (parse-intgrid '123\n456\n789') -> [[1 2 3] [4 5 6] [7 8 9]]"
