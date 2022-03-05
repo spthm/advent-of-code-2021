@@ -17,9 +17,14 @@
   (Long/parseLong s))
 
 (defn parse-binary
-  "Parse a string of 0s and 1s as an Int."
+  "Parse a string of 0s and 1s as a Long"
   [s]
-  (Integer/parseInt s 2))
+  (Long/parseLong s 2))
+
+(defn parse-hex
+  "Parse string s as a hexidecimal value."
+  [s]
+  (Integer/parseInt s 16))
 
 (defn parse-ints
   "Return a vector of all ints in the string s."
